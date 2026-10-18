@@ -1,0 +1,29 @@
+.cache/
+node_modules/
+.env
+.env.*
+!.env.example
+data/
+.local/
+dist/
+*.log
+
+# Personal inputs, exported statistics and local browser sessions.
+*.xlsx
+*.xls
+*.csv
+*.tsv
+profile/
+*.har
+*.pem
+*.key
+*.pfx
+*.p12
+
+# Local editor and operating-system files.
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.tmp

@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>本地牌谱记录 · 雀赛统计</title><link rel="stylesheet" href="/style.css"></head>
+<body class="records-page"><main>
+  <header><a class="brand" href="/"><span class="tile">中</span><span>雀赛统计<small>MAHJONG TOURNAMENT STATS</small></span></a><a class="button secondary back-link" href="/">返回统计</a></header>
+  <section class="results records-panel" id="replays-section">
+    <div class="section-heading"><div><h2>本地牌谱记录</h2><p id="record-scope" class="record-scope"></p></div><div class="record-actions"><button id="restore-records" class="button secondary" hidden>恢复上次操作</button><button id="clear-records" class="button danger-outline" disabled>清空当前比赛</button></div></div>
+    <p id="records-contest-name" class="table-hint"></p>
+    <form id="record-filters" class="record-filters"><label for="record-from">开始日期<input type="date" id="record-from"></label><label for="record-to">结束日期<input type="date" id="record-to"></label><label for="record-player" class="record-player-filter">选手<input type="search" id="record-player" placeholder="昵称或账号 ID" autocomplete="off"></label><button type="button" id="clear-record-filters" class="button secondary">重置筛选</button></form>
+    <p class="record-help">按北京时间筛选，日期包含当天；结果按对局时间从新到旧排列。</p><p id="record-filter-error" class="notice error" role="status" hidden></p>
+    <div class="record-list-heading"><span id="record-result-count" role="status"></span><span>清空操作针对当前比赛的全部记录</span></div>
+    <p id="page-status" class="notice" role="status" hidden></p><p id="record-notice" class="record-notice" role="status" hidden></p>
+    <div id="replays" class="record-list"></div><p id="replays-empty" class="record-help" hidden>当前比赛还没有本地牌谱。</p>
+  </section>
+  <footer><div>雀赛统计 <span id="app-version"></span></div><span>数据来自你导入的雀魂牌谱</span></footer>
+</main><dialog id="record-confirmation" aria-labelledby="record-confirmation-title" aria-describedby="record-confirmation-detail"><h2 id="record-confirmation-title"></h2><p id="record-confirmation-detail"></p><p class="record-help">操作只影响当前比赛的本地记录，可使用“恢复上次操作”找回。再次同步也可重新下载。</p><div class="dialog-actions"><button id="cancel-record-action" class="button secondary" autofocus>取消</button><button id="confirm-record-action" class="button danger">确认删除</button></div></dialog><script type="module" src="/records.js"></script></body></html>

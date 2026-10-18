@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>雀赛统计</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+<main>
+  <header><a class="brand" href="/"><span class="tile">中</span><span>雀赛统计<small>MAHJONG TOURNAMENT STATS</small></span></a><div class="account"><span id="audio-status" class="audio-status" hidden>雀魂已静音</span><span id="session-dot" class="dot"></span><span id="session-label">正在连接</span><button id="login" class="button secondary">登录雀魂</button><button id="logout" class="text-button" hidden>退出登录</button></div></header>
+  <section class="import-panel">
+    <div class="section-heading"><h2>导入比赛牌谱</h2><span class="step">使用当前雀魂登录状态</span></div>
+    <form id="contest-selector" class="contest-selector"><label for="contest-number">比赛编号</label><input id="contest-number" type="text" inputmode="numeric" pattern="[0-9]{1,10}" maxlength="10" required list="saved-contests" autocomplete="off" aria-describedby="contest-selector-hint"><datalist id="saved-contests"></datalist><button id="change-contest" class="button secondary" type="submit">切换比赛</button><span id="contest-selector-hint">各比赛分别保存，切换后可点击一键导入。</span></form>
+    <div class="contest-import"><div><strong id="import-contest-id">比赛 —</strong><p id="contest-name">尚未同步</p></div><button id="import-contest" class="button primary">一键导入比赛</button></div>
+    <p id="sync-status" class="sync-status">尚未同步比赛列表，当前仅统计已导入的分享链接。</p>
+    <progress id="sync-progress" hidden aria-label="比赛导入进度"></progress>
+    <details id="link-import" class="fold-panel"><summary>粘贴牌谱链接</summary><div class="fold-body">
+    <label for="links">牌谱分享链接 <span>支持多条，每行一条，也可直接粘贴游戏内分享文本</span></label>
+    <textarea id="links" rows="3" spellcheck="false" placeholder="雀魂牌谱:https://game.maj-soul.com/1/?paipu=…"></textarea>
+    <div class="import-actions"><p>同一对局自动去重 · 一份牌谱统计全桌四位选手</p><button id="import" class="button secondary">导入并统计 <span>↗</span></button></div>
+    </div></details>
+    <div class="notice-actions"><p id="notice" class="notice" role="status">首次使用请先点击右上角“登录雀魂”，在官方页面完成登录。</p><button id="stop-import" class="text-button" hidden>停止导入</button></div>
+    <details id="import-log" class="fold-panel"><summary>导入明细</summary><div id="jobs" class="jobs" aria-live="polite"></div></details>
+  </section>
+  <section class="numbers" aria-label="统计范围"><div><span>已导入对局</span><strong id="game-count">—</strong><small>按牌谱去重</small></div><div><span>小局数</span><strong id="round-count">—</strong><small>包含连庄与流局</small></div><div><span>参赛选手</span><strong id="player-count">—</strong><small>按账号 ID 汇总</small></div><div class="scope"><span class="dot green"></span><div><strong>本地保存</strong><small>牌谱与统计结果保存在本机</small></div></div></section>
+  <section class="results team-results"><div class="section-heading"><h2>队伍 PT</h2><button id="sync-teams" class="button secondary">同步队伍</button></div><p class="table-hint">PT 为各队成员已导入牌谱的 PT 之和，默认按 PT 降序排列。</p><p id="team-status" class="table-hint" role="status"></p><div id="team-table-wrap" class="table-wrap" role="region" aria-label="队伍 PT 数据" hidden><table><thead><tr><th scope="col" class="team-rank">序号</th><th scope="col">队伍</th><th scope="col" aria-sort="descending"><button id="team-sort" class="sort-header">PT ↓</button></th><th scope="col"><span class="team-gap-value">与上位之差</span></th></tr></thead><tbody id="teams"></tbody></table></div><p id="teams-empty" class="record-help">尚无队伍名单，登录后点击“同步队伍”即可读取。</p></section>
+  <section class="results"><div class="section-heading"><div><p class="eyebrow">PLAYER STATISTICS</p><h2>赛事选手统计</h2></div><span id="coverage" class="tag">等待导入</span></div>
+    <div id="table-controls" class="table-controls" hidden><input id="player-search" type="search" aria-label="查找选手" placeholder="按昵称、ID 或队名查找"><label class="detail-toggle"><input id="show-details" type="checkbox" role="switch">显示详细指标</label><div class="sort-controls"><label for="sort-key">排序</label><select id="sort-key" aria-label="排序指标"></select><button id="sort-direction" class="button secondary" aria-label="切换排序方向">升序 ↑</button></div><a id="export-excel" class="button secondary" href="/api/export.xlsx" download title="导出全部选手、全部指标和原始计数">导出 Excel</a></div>
+    <p id="table-hint" class="table-hint">默认按 PT 排名；悬停表头查看指标定义。</p>
+    <div id="empty" class="empty"><span class="empty-tile">發</span><h3>从一份牌谱开始</h3><p>登录后导入上方链接，这里会显示四位选手的真实统计。</p></div>
+    <div id="table-wrap" class="table-wrap" role="region" aria-label="选手统计数据" tabindex="0" hidden><table><thead id="metrics-head"></thead><tbody id="players"></tbody></table></div>
+    <details><summary>查看统计口径</summary><ul id="methodology"></ul></details>
+  </section>
+  <a href="/records" id="records-link" class="records-link"><span>本地牌谱记录</span><span><span id="records-count"></span> →</span></a>
+  <footer><div>雀赛统计 <span id="app-version"></span></div><button id="open-data" class="text-button" hidden>打开数据目录</button><span>数据来自你导入的雀魂牌谱</span></footer>
+</main><div id="metric-tooltip" class="metric-tooltip" role="tooltip" hidden></div><script type="module" src="/app.js"></script>
+</body></html>
