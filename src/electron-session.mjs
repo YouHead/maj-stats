@@ -96,9 +96,16 @@ export class OfficialSession {
       } else if (method === 'Runtime.exceptionThrown' && params.exceptionDetails?.url === 'maj-stats-session-bridge.js') {
         this.bridgeError = { text: params.exceptionDetails.text, line: params.exceptionDetails.lineNumber };
       } else if (method === 'Target.attachedToTarget') {
+        const child = params.sessionId;
+        // Only page/Unity worker contexts need the socket bridge. In particular,
+        // a service worker can wait for Runtime initialization until it resumes;
+        // waiting to inject first deadlocks the official client's boot cache.
+        if (!['worker', 'iframe'].includes(params.targetInfo.type)) {
+          debug.sendCommand('Runtime.runIfWaitingForDebugger', {}, child).catch(() => {});
+          return;
+        }
         // Unity may create its networking WebSocket in an Emscripten worker.
         // Install the same read-only bridge before that worker starts.
-        const child = params.sessionId;
         (async () => {
           try {
             await debug.sendCommand('Runtime.enable', {}, child);
@@ -121,7 +128,10 @@ export class OfficialSession {
     await Promise.all([
       debug.sendCommand('Runtime.enable'),
       debug.sendCommand('Network.enable'),
-      debug.sendCommand('Target.setAutoAttach', { autoAttach: true, waitForDebuggerOnStart: true, flatten: true }),
+      debug.sendCommand('Target.setAutoAttach', {
+        autoAttach: true, waitForDebuggerOnStart: true, flatten: true,
+        filter: [{ type: 'worker' }, { type: 'iframe' }, { exclude: true }],
+      }),
     ]);
     // Unity needs an unminimized native surface to initialize its worker.
     // Keep it invisible and noninteractive while it restores the saved login.

@@ -2,11 +2,13 @@
 
 Windows 桌面工具，用于导入国服雀魂普通四人麻将比赛牌谱，汇总选手表现与队伍 PT。
 
+0.2.9 修复雀魂 WebGL 4.0.51 更新后登录窗口卡在初始黑屏的问题。升级沿用原有牌谱和网页登录目录，无需清空缓存或删除登录信息。
+
 [下载 Windows 版](https://github.com/YouHead/maj-stats/releases/latest) · [报告问题](https://github.com/YouHead/maj-stats/issues) · [MIT 许可证](LICENSE)
 
 ## 使用
 
-1. 从 Releases 下载 `MajStats-0.2.8-Windows-x64.exe`，双击运行，无需安装 Node.js。
+1. 从 Releases 下载 Windows x64 的 exe，双击运行，无需安装 Node.js。
 2. 点击「登录雀魂」，在软件内的官方雀魂窗口登录。账号、密码与验证码只在官方页面输入。
 3. 填写比赛编号并切换，点击「一键导入比赛」。也可展开牌谱链接输入区，粘贴一条或多条官方分享链接。
 4. 查看选手统计和队伍 PT，按指标排序，或导出 Excel。在「本地牌谱记录」中按日期、昵称或账号 ID 搜索，展开对局详情。

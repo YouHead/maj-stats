@@ -10,8 +10,11 @@ function fixture() {
     constructor(options) {
       super(); windows.push(this); this.options = options; this.visible = options.show; this.minimized = false;
       this.calls = []; this.loads = []; this.url = ''; this.statusResult = null;
-      const debug = new EventEmitter(); debug.attach = () => {};
-      debug.sendCommand = async (method, parameters) => method === 'Runtime.evaluate' && parameters.returnByValue ? { result: { value: this.statusResult } } : {};
+      const debug = new EventEmitter(); debug.attach = () => {}; debug.commands = [];
+      debug.sendCommand = async (method, parameters, sessionId) => {
+        debug.commands.push({ method, parameters, sessionId });
+        return method === 'Runtime.evaluate' && parameters.returnByValue ? { result: { value: this.statusResult } } : {};
+      };
       this.webContents = Object.assign(new EventEmitter(), {
         debugger: debug, setAudioMuted: (value) => { this.muted = value; }, isAudioMuted: () => this.muted,
         getURL: () => this.url, isLoading: () => false, setWindowOpenHandler: () => {},
@@ -94,4 +97,46 @@ test('explicit login opens the background window and replay load failures reach 
   await assert.rejects(session.openReplay(replayUrl), /navigation failed/);
   assert.equal(session.current.ready, false);
   await session.logout(); assert.equal(windows[0].cleared, true); assert.equal(session.window, null);
+});
+
+test('service workers are excluded from startup suspension and an unexpected cache worker resumes without injection', async () => {
+  const { session, windows } = fixture();
+  await session.open({ show: false });
+  const debug = windows[0].webContents.debugger;
+  const filter = debug.commands.find(({ method }) => method === 'Target.setAutoAttach').parameters.filter;
+  const isIncluded = (type) => !filter.find((entry) => !entry.type || entry.type === type)?.exclude;
+  assert.equal(isIncluded('service_worker'), false);
+  assert.equal(isIncluded('shared_worker'), false);
+  assert.equal(isIncluded('worker'), true);
+  assert.equal(isIncluded('iframe'), true);
+  const originalSend = debug.sendCommand;
+  debug.sendCommand = (method, parameters, sessionId) => {
+    if (sessionId === 'cache-worker' && method === 'Runtime.enable') return new Promise(() => {});
+    return originalSend(method, parameters, sessionId);
+  };
+  debug.emit('message', {}, 'Target.attachedToTarget', { sessionId: 'cache-worker', targetInfo: { type: 'service_worker' } });
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.deepEqual(debug.commands.filter(({ sessionId }) => sessionId === 'cache-worker').map(({ method }) => method), ['Runtime.runIfWaitingForDebugger']);
+});
+
+test('Unity workers and frames still receive the bridge before resuming, including injection failures', async () => {
+  for (const type of ['worker', 'iframe']) {
+    const { session, windows } = fixture();
+    await session.open({ show: false });
+    const debug = windows[0].webContents.debugger;
+    debug.emit('message', {}, 'Target.attachedToTarget', { sessionId: 'game-context', targetInfo: { type } });
+    await new Promise((resolve) => setImmediate(resolve));
+    const commands = debug.commands.filter(({ sessionId }) => sessionId === 'game-context');
+    assert.equal(commands[0].method, 'Runtime.enable');
+    assert.equal(commands[1].method, 'Runtime.evaluate');
+    assert.match(commands[1].parameters.expression, /__majStatsSession/);
+    assert.equal(commands.at(-1).method, 'Runtime.runIfWaitingForDebugger');
+    assert.equal(commands.some(({ method }) => method === 'Page.addScriptToEvaluateOnNewDocument'), type === 'iframe');
+    const originalSend = debug.sendCommand;
+    debug.sendCommand = (method, parameters, sessionId) => sessionId === 'failed-worker' && method === 'Runtime.evaluate'
+      ? Promise.reject(new Error('Context replaced')) : originalSend(method, parameters, sessionId);
+    debug.emit('message', {}, 'Target.attachedToTarget', { sessionId: 'failed-worker', targetInfo: { type } });
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(debug.commands.filter(({ sessionId }) => sessionId === 'failed-worker').at(-1).method, 'Runtime.runIfWaitingForDebugger');
+  }
 });
